@@ -9,6 +9,7 @@ import LibraryModule from './components/Library/LibraryModule';
 import AIModule from './components/AI/AIModule';
 import CommunicationModule from './components/Communication/CommunicationModule';
 import AdminModule from './components/Admin/AdminModule';
+import LoginModal from './components/Auth/LoginModal';
 
 const moduleTitle = {
   dashboard: 'Dashboard',
@@ -26,12 +27,25 @@ type ModuleKey = keyof typeof moduleTitle;
 function App() {
   const [activeModule, setActiveModule] = useState<ModuleKey>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
+  const [showLogin, setShowLogin] = useState(true);
 
   // Función para manejar el cambio de módulo desde Sidebar
   const handleModuleChange = (module: string) => {
     if (module in moduleTitle) {
       setActiveModule(module as ModuleKey);
     }
+  };
+
+  const handleLogin = (userData: { name: string; email: string; role: string }) => {
+    setUser(userData);
+    setShowLogin(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setShowLogin(true);
+    setActiveModule('dashboard');
   };
 
   const renderModule = () => {
@@ -49,22 +63,34 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar
-        activeModule={activeModule}
-        onModuleChange={handleModuleChange}
-        isCollapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+    <>
+      <LoginModal 
+        isOpen={showLogin} 
+        onClose={() => setShowLogin(false)} 
+        onLogin={handleLogin}
       />
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={moduleTitle[activeModule]} />
+      <div className="min-h-screen bg-gray-50 flex">
+        <Sidebar
+          activeModule={activeModule}
+          onModuleChange={handleModuleChange}
+          isCollapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
         
-        <main className="flex-1 overflow-y-auto">
-          {renderModule()}
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header 
+            title={moduleTitle[activeModule]} 
+            user={user}
+            onLogout={handleLogout}
+          />
+          
+          <main className="flex-1 overflow-y-auto">
+            {renderModule()}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

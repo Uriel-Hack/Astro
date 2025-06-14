@@ -1,5 +1,7 @@
-import  { useState } from 'react';
-import { Plus, Play, Edit, Trash2, Clock, Users, BarChart3, Eye } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Play, Edit, Trash2, Clock, Users, BarChart3, Eye, Share2 } from 'lucide-react';
+import EditExamModal from './EditExamModal';
+import ShareExamModal from './ShareExamModal';
 
 interface Question {
   id: string;
@@ -10,58 +12,102 @@ interface Question {
   difficulty: 'easy' | 'medium' | 'hard';
   category: string;
   uses: number;
+  points: number;
 }
 
 interface Exam {
   id: string;
   title: string;
   subject: string;
-  questions: number;
   duration: number;
+  instructions: string;
+  questions: Question[];
   attempts: number;
   avgScore: number;
   status: 'active' | 'completed' | 'draft';
   created: string;
+  settings: {
+    shuffleQuestions: boolean;
+    showResults: boolean;
+    allowRetakes: boolean;
+    timeLimit: boolean;
+  };
 }
 
 export default function EvaluationsModule() {
   const [activeTab, setActiveTab] = useState('exams');
   const [showCreateExam, setShowCreateExam] = useState(false);
   const [showCreateQuestion, setShowCreateQuestion] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   
   const [exams, setExams] = useState<Exam[]>([
     {
       id: '1',
       title: 'Examen de Álgebra Lineal',
       subject: 'Matemáticas',
-      questions: 20,
       duration: 90,
+      instructions: 'Lee cuidadosamente cada pregunta antes de responder.',
+      questions: [
+        {
+          id: '1',
+          text: '¿Cuál es la derivada de x²?',
+          type: 'multiple-choice',
+          options: ['2x', 'x', '2', 'x²'],
+          correctAnswer: '2x',
+          difficulty: 'easy',
+          category: 'Cálculo',
+          uses: 15,
+          points: 2
+        }
+      ],
       attempts: 28,
       avgScore: 8.2,
       status: 'active',
-      created: '2024-01-15'
+      created: '2024-01-15',
+      settings: {
+        shuffleQuestions: true,
+        showResults: true,
+        allowRetakes: false,
+        timeLimit: true
+      }
     },
     {
       id: '2',
       title: 'Quiz de Cinemática',
       subject: 'Física',
-      questions: 10,
       duration: 30,
+      instructions: 'Responde todas las preguntas en el tiempo asignado.',
+      questions: [],
       attempts: 32,
       avgScore: 7.8,
       status: 'completed',
-      created: '2024-01-10'
+      created: '2024-01-10',
+      settings: {
+        shuffleQuestions: false,
+        showResults: true,
+        allowRetakes: true,
+        timeLimit: true
+      }
     },
     {
       id: '3',
       title: 'Evaluación de Química Orgánica',
       subject: 'Química',
-      questions: 15,
       duration: 60,
+      instructions: 'Evaluación sobre compuestos orgánicos.',
+      questions: [],
       attempts: 0,
       avgScore: 0,
       status: 'draft',
-      created: '2024-01-20'
+      created: '2024-01-20',
+      settings: {
+        shuffleQuestions: true,
+        showResults: false,
+        allowRetakes: false,
+        timeLimit: true
+      }
     },
   ]);
 
@@ -74,7 +120,8 @@ export default function EvaluationsModule() {
       correctAnswer: '2x',
       difficulty: 'easy',
       category: 'Cálculo',
-      uses: 15
+      uses: 15,
+      points: 1
     },
     {
       id: '2',
@@ -82,7 +129,8 @@ export default function EvaluationsModule() {
       type: 'essay',
       difficulty: 'medium',
       category: 'Álgebra',
-      uses: 8
+      uses: 8,
+      points: 3
     },
     {
       id: '3',
@@ -91,7 +139,8 @@ export default function EvaluationsModule() {
       correctAnswer: 'true',
       difficulty: 'easy',
       category: 'Física',
-      uses: 12
+      uses: 12,
+      points: 1
     },
   ]);
 
@@ -108,7 +157,8 @@ export default function EvaluationsModule() {
     options: ['', '', '', ''],
     correctAnswer: '',
     difficulty: 'easy' as 'easy' | 'medium' | 'hard',
-    category: ''
+    category: '',
+    points: 1
   });
 
   const createExam = () => {
@@ -117,12 +167,19 @@ export default function EvaluationsModule() {
         id: Date.now().toString(),
         title: newExam.title,
         subject: newExam.subject,
-        questions: newExam.questions,
         duration: newExam.duration,
+        instructions: '',
+        questions: [],
         attempts: 0,
         avgScore: 0,
         status: 'draft',
-        created: new Date().toISOString().split('T')[0]
+        created: new Date().toISOString().split('T')[0],
+        settings: {
+          shuffleQuestions: false,
+          showResults: true,
+          allowRetakes: false,
+          timeLimit: true
+        }
       };
       
       setExams(prev => [...prev, exam]);
@@ -141,7 +198,8 @@ export default function EvaluationsModule() {
         correctAnswer: newQuestion.correctAnswer,
         difficulty: newQuestion.difficulty,
         category: newQuestion.category,
-        uses: 0
+        uses: 0,
+        points: newQuestion.points
       };
       
       setQuestionBank(prev => [...prev, question]);
@@ -151,7 +209,8 @@ export default function EvaluationsModule() {
         options: ['', '', '', ''],
         correctAnswer: '',
         difficulty: 'easy',
-        category: ''
+        category: '',
+        points: 1
       });
       setShowCreateQuestion(false);
     }
@@ -170,6 +229,22 @@ export default function EvaluationsModule() {
       exam.id === examId 
         ? { ...exam, status: exam.status === 'active' ? 'draft' : 'active' as 'active' | 'draft' }
         : exam
+    ));
+  };
+
+  const handleEditExam = (exam: Exam) => {
+    setSelectedExam(exam);
+    setShowEditModal(true);
+  };
+
+  const handleShareExam = (exam: Exam) => {
+    setSelectedExam(exam);
+    setShowShareModal(true);
+  };
+
+  const handleSaveExam = (updatedExam: Exam) => {
+    setExams(prev => prev.map(exam => 
+      exam.id === updatedExam.id ? updatedExam : exam
     ));
   };
 
@@ -259,16 +334,6 @@ export default function EvaluationsModule() {
                   min="1"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Número de preguntas</label>
-                <input
-                  type="number"
-                  value={newExam.questions}
-                  onChange={(e) => setNewExam(prev => ({ ...prev, questions: Number(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min="1"
-                />
-              </div>
             </div>
             <div className="flex gap-2 mt-6">
               <button
@@ -304,7 +369,7 @@ export default function EvaluationsModule() {
                   placeholder="Escribe la pregunta aquí..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
                   <select
@@ -328,6 +393,16 @@ export default function EvaluationsModule() {
                     <option value="medium">Medio</option>
                     <option value="hard">Difícil</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Puntos</label>
+                  <input
+                    type="number"
+                    value={newQuestion.points}
+                    onChange={(e) => setNewQuestion(prev => ({ ...prev, points: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="1"
+                  />
                 </div>
               </div>
               <div>
@@ -423,6 +498,27 @@ export default function EvaluationsModule() {
         </div>
       )}
 
+      {/* Edit Exam Modal */}
+      <EditExamModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        exam={selectedExam}
+        onSave={handleSaveExam}
+      />
+
+      {/* Share Exam Modal */}
+      <ShareExamModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        exam={selectedExam ? {
+          id: selectedExam.id,
+          title: selectedExam.title,
+          subject: selectedExam.subject,
+          duration: selectedExam.duration,
+          questions: selectedExam.questions.length
+        } : null}
+      />
+
       {/* Tabs */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="border-b border-gray-200">
@@ -481,7 +577,7 @@ export default function EvaluationsModule() {
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-4 h-4" />
-                          {exam.questions} preguntas
+                          {exam.questions.length} preguntas
                         </span>
                         <span className="flex items-center gap-1">
                           <BarChart3 className="w-4 h-4" />
@@ -491,6 +587,13 @@ export default function EvaluationsModule() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handleShareExam(exam)}
+                        className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        Compartir
+                      </button>
                       <button 
                         onClick={() => toggleExamStatus(exam.id)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -502,7 +605,10 @@ export default function EvaluationsModule() {
                         <Play className="w-4 h-4" />
                         {exam.status === 'active' ? 'Pausar' : 'Activar'}
                       </button>
-                      <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => handleEditExam(exam)}
+                        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button 
@@ -567,6 +673,7 @@ export default function EvaluationsModule() {
                           {question.difficulty}
                         </span>
                         <span className="text-sm text-gray-500">{question.category}</span>
+                        <span className="text-sm text-gray-500">{question.points} pts</span>
                         <span className="text-sm text-gray-500">Usado {question.uses} veces</span>
                       </div>
                     </div>
