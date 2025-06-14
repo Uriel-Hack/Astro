@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, X, Check, AlertTriangle, Info, CheckCircle, XCircle, Trash2, MarkAsUnread } from 'lucide-react';
+import { Bell, X, Check, AlertTriangle, Info, CheckCircle, XCircle, Trash2, AreaChart as MarkAsUnread } from 'lucide-react';
 
 interface Notification {
   id: string;
