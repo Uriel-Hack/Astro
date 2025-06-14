@@ -30,7 +30,7 @@ function App() {
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
   const [showLogin, setShowLogin] = useState(true);
 
-  // Función para manejar el cambio de módulo desde Sidebar
+  // Función para manejar el cambio de módulo desde Sidebar y Dashboard
   const handleModuleChange = (module: string) => {
     if (module in moduleTitle) {
       setActiveModule(module as ModuleKey);
@@ -50,15 +50,24 @@ function App() {
 
   const renderModule = () => {
     switch (activeModule) {
-      case 'dashboard': return <Dashboard />;
-      case 'attendance': return <AttendanceModule />;
-      case 'grades': return <GradesModule />;
-      case 'evaluations': return <EvaluationsModule />;
-      case 'library': return <LibraryModule />;
-      case 'ai': return <AIModule />;
-      case 'communication': return <CommunicationModule />;
-      case 'admin': return <AdminModule />;
-      default: return <Dashboard />;
+      case 'dashboard': 
+        return <Dashboard onModuleChange={handleModuleChange} user={user} />;
+      case 'attendance': 
+        return <AttendanceModule />;
+      case 'grades': 
+        return <GradesModule />;
+      case 'evaluations': 
+        return <EvaluationsModule />;
+      case 'library': 
+        return <LibraryModule />;
+      case 'ai': 
+        return <AIModule />;
+      case 'communication': 
+        return <CommunicationModule />;
+      case 'admin': 
+        return <AdminModule />;
+      default: 
+        return <Dashboard onModuleChange={handleModuleChange} user={user} />;
     }
   };
 

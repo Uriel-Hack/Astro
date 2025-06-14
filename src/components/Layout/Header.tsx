@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Search, User, LogOut } from 'lucide-react';
+import { Bell, Search, User, LogOut, Settings, HelpCircle } from 'lucide-react';
 import NotificationCenter from '../Notifications/NotificationCenter';
 
 interface HeaderProps {
@@ -15,6 +15,24 @@ interface HeaderProps {
 export default function Header({ title, user, onLogout }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const getRoleText = (role: string) => {
+    switch (role) {
+      case 'teacher': return 'Docente';
+      case 'student': return 'Estudiante';
+      case 'admin': return 'Administrador';
+      default: return 'Usuario';
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'teacher': return 'bg-blue-100 text-blue-800';
+      case 'student': return 'bg-emerald-100 text-emerald-800';
+      case 'admin': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <>
@@ -56,37 +74,65 @@ export default function Header({ title, user, onLogout }: HeaderProps) {
               <div className="relative">
                 <button 
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center gap-3 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
                     {user.name.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div className="text-left hidden md:block">
                     <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                        {getRoleText(user.role)}
+                      </span>
+                    </div>
                   </div>
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-medium">
+                          {user.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getRoleColor(user.role)}`}>
+                            {getRoleText(user.role)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      Mi perfil
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        onLogout?.();
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Cerrar sesión
-                    </button>
+                    
+                    <div className="py-1">
+                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                        <User className="w-4 h-4" />
+                        Mi perfil
+                      </button>
+                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                        <Settings className="w-4 h-4" />
+                        Configuración
+                      </button>
+                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-3">
+                        <HelpCircle className="w-4 h-4" />
+                        Ayuda
+                      </button>
+                    </div>
+                    
+                    <div className="border-t border-gray-100 py-1">
+                      <button 
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          onLogout?.();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Cerrar sesión
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
